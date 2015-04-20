@@ -7,7 +7,7 @@ A transparent socks proxy for Docker.
 **/!\ BEWARE! THIS CONTAINER MODIFIES YOUR IPTABLES RULES FOR YOUR docker0 INTERFACE!!!**
 **PLEASE READ THE EXPLANATIONS BELOW AND MAKE SURE TO EXIT IT CLEANY OR TO RUN THE STOP COMMAND TO RESET YOUR RULES**
 
-This container is based on "munkyboy / redsocks"(https://registry.hub.docker.com/u/munkyboy/redsocks/) one.
+This container is based on [munkyboy / redsocks](https://registry.hub.docker.com/u/munkyboy/redsocks/) one.
 The present version runs entirely from inside the container.
 
 ## Transparent proxy for Docker
