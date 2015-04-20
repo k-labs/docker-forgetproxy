@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+
+iptables_rules() {
+    # private ip ranges are not intercepted
+    iptables -t nat -$1 PREROUTING -i docker0 -d 10.0.0.0/8 -j RETURN
+    iptables -t nat -$1 PREROUTING -i docker0 -d 127.0.0.0/8 -j RETURN
+    iptables -t nat -$1 PREROUTING -i docker0 -d 169.254.0.0/16 -j RETURN
+    iptables -t nat -$1 PREROUTING -i docker0 -d 172.16.0.0/12 -j RETURN
+    iptables -t nat -$1 PREROUTING -i docker0 -d 192.168.0.0/16 -j RETURN
+    iptables -t nat -$1 PREROUTING -i docker0 -d 224.0.0.0/4 -j RETURN
+    iptables -t nat -$1 PREROUTING -i docker0 -d 240.0.0.0/4 -j RETURN
+
+    iptables -t nat -$1 PREROUTING -p tcp --dport 80  -i docker0 -j REDIRECT --to 12345 2>/dev/null;
+    iptables -t nat -$1 PREROUTING -p tcp --dport 443 -i docker0 -j REDIRECT --to 12346 2>/dev/null;
+}
+
+append_redsocks_conf() {
+  local type=$1
+  local ip=$2
+  local port=$3
+  local local_port=$4
+  if [ -z "$type" -o -z "$ip" -o -z "$port" -o -z "$local_port" ] ; then
+    echo missing required parameter >&2
+    exit 1
+  fi
+  (cat <<EOF
+redsocks {
+  type = $type;
+  ip = $ip;
+  port = $port;
+  local_ip = 0.0.0.0;
+  local_port = $local_port;
+}
+EOF
+) >> /tmp/redsocks.conf
+}
+
+parse_ip() {
+  echo $1 | sed -nE "s/^(http(s)?:\/\/)?(.+):([0-9]+)$/\3/p"
+}
+
+parse_port() {
+  echo $1 | sed -nE "s/^(http(s)?:\/\/)?(.+):([0-9]+)$/\4/p"
+}
+
+stop() {
+    echo "Cleaning iptables"
+    iptables_rules D
+    pkill -9 redsocks
+}
+
+interrupted () {
+    echo 'Interrupted, cleaning up...'
+    trap - INT
+    stop
+    kill -INT $$
+}
+
+run() {
+    trap interrupted INT
+    trap terminated TERM
+
+    if [ -z "$http_proxy" ]; then
+        echo "No http_proxy set. Exiting"
+        exit 1
+    fi
+
+    ip=$(parse_ip $http_proxy)
+    port=$(parse_port $http_proxy)
+    append_redsocks_conf "http-relay" $ip $port "12345"
+
+    if [ -z "$https_proxy" ]; then
+        https_proxy="$http_proxy"
+    fi
+
+    ip=$(parse_ip $https_proxy)
+    port=$(parse_port $https_proxy)
+    append_redsocks_conf "http-connect" $ip $port "12346"
+
+    iptables_rules A
+    /usr/sbin/redsocks -c /tmp/redsocks.conf &
+
+    tail -f /dev/null
+}
+
+
+terminated () {
+    echo 'Terminated, cleaning up...'
+    trap - TERM
+    stop
+    kill -TERM $$
+}
+
+case "$1" in
+    stop )  stop ;;
+    * )     run ;;
+esac
