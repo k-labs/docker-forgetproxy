@@ -36,11 +36,11 @@ EOF
 }
 
 parse_ip() {
-  echo $1 | sed -nE "s/^(http(s)?:\/\/)?(.+):([0-9]+)$/\3/p"
+  echo $1 | sed -nE "s/^(http(s)?:\/\/)?(.+):([0-9]+)\/?$/\3/p"
 }
 
 parse_port() {
-  echo $1 | sed -nE "s/^(http(s)?:\/\/)?(.+):([0-9]+)$/\4/p"
+  echo $1 | sed -nE "s/^(http(s)?:\/\/)?(.+):([0-9]+)\/?$/\4/p"
 }
 
 stop() {
