@@ -10,8 +10,11 @@ iptables_rules() {
     iptables -t nat -$1 PREROUTING -i docker0 -d 224.0.0.0/4 -j RETURN
     iptables -t nat -$1 PREROUTING -i docker0 -d 240.0.0.0/4 -j RETURN
 
-    iptables -t nat -$1 PREROUTING -p tcp --dport 80  -i docker0 -j REDIRECT --to 12345 2>/dev/null;
-    iptables -t nat -$1 PREROUTING -p tcp --dport 443 -i docker0 -j REDIRECT --to 12346 2>/dev/null;
+    iptables -t nat -$1 PREROUTING -p tcp --dport 80   -i docker0 -j REDIRECT --to 12345 2>/dev/null;
+    iptables -t nat -$1 PREROUTING -p tcp --dport 443  -i docker0 -j REDIRECT --to 12346 2>/dev/null;
+    iptables -t nat -$1 PREROUTING -p tcp --dport 22   -i docker0 -j REDIRECT --to 12346 2>/dev/null;
+    iptables -t nat -$1 PREROUTING -p tcp --dport 7999 -i docker0 -j REDIRECT --to 12346 2>/dev/null;
+
 }
 
 append_redsocks_conf() {
