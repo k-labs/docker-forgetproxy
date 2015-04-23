@@ -15,13 +15,15 @@ The present version runs entirely from inside the container.
 If you are running docker behind a corporate http proxy, you can run this container to 
 just forget it and let docker run as if you had a direct connection to the outside world.
 
-## How use
+Currently, all network connections coming out of the docker0 interface on the ports 80 (http), 443 (https), 22 (ssh) and 7999 (stash) will automatically be proxified.
+
+## How to use
 
 ### launch
 
     docker run -ti --net=host --privileged -e http_proxy=http://myproxy:3128 -e https_proxy=http://myproxy:3128 klabs/forgetproxy
 
-It is adviced to let the container run in front as it is configured to intercept the CTRL+C and clean the iptables rules on exit.
+It is advised to let the container run in the foreground as it is configured to intercept the CTRL+C and clean the iptables rules on exit.
 
 ### stop
 
