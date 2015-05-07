@@ -20,8 +20,7 @@ It runs entirely from inside the container.
 
 ## How it works
 
-All network connections coming out of the docker0 interface on the ports 80 (http), 443 (https), 22 (ssh) and 7999 (stash ssh)
-will automatically be proxified.
+All network connections coming out of the docker0 interface will automatically be proxified.
 
 The container  interprets the environment variables http_proxy and https_proxy to configure the socks proxy. 
 
